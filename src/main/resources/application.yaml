@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: jwtAuthentication
+  datasource:
+    url: jdbc:mysql://localhost:3306/user_db
+    username: root
+    password: root@123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+  data:
+    jdbc:
+      dialect: mysql
+server:
+  port: 4000
+security:
+  jwt:
+    secret-key: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTcyMjU3NDE5MSwiaWF0IjoxNzIyNTc0MTkxfQ.QksLBYrTGVCmd36lxLoxd2QmS89sjGax4FhyFaIaxR8
+    expiration-time: 86400000
+logging:
+  level:
+    root: info
+    dev.hemraj: debug
+  file:
+    name: auth.log
+    path: /var/jwtauth/logs
