@@ -48,7 +48,7 @@ public class AuthenticationService {
                         loginDto.getPassword()
                 )
         );
-        return userRepository.findByEmail(loginDto.getEmail()).orElseThrow();
+        return userRepository.findByEmailIgnoreCase(loginDto.getEmail()).orElseThrow();
     }
     public List<User> allUsers(){
         List<User> all = new ArrayList<>();

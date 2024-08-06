@@ -1,4 +1,17 @@
 spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: killerhems004@gmail.com
+    password: hufo bgcb mqsf icag
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+
   application:
     name: jwtAuthentication
   datasource:
@@ -25,3 +38,5 @@ logging:
   file:
     name: auth.log
     path: /var/jwtauth/logs
+
+
