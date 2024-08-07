@@ -24,6 +24,16 @@ public class User implements UserDetails {
     private Date createdAt;
     @Column(name = "updated_At")
     private Date updatedAt;
+    @Column(name = "is_verified",nullable = false)
+    private boolean verified=false;
+
+    public boolean isVerified() {
+        return verified;
+    }
+
+    public void setVerified(boolean verified) {
+        this.verified = verified;
+    }
 
     public Integer getId() {
         return id;
@@ -97,11 +107,6 @@ public class User implements UserDetails {
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
         return true;
     }
 

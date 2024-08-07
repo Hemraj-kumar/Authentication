@@ -2,6 +2,7 @@ package dev.hemraj.jwtauthentication.Service;
 
 import dev.hemraj.jwtauthentication.Model.User;
 import dev.hemraj.jwtauthentication.Repository.UserRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -20,4 +21,6 @@ public class UserService {
 
         return users;
     }
+
+//    public ResponseEntity<?>
 }
