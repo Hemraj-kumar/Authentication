@@ -7,6 +7,7 @@ import dev.hemraj.jwtauthentication.ResponseDto.LoginResponse;
 import dev.hemraj.jwtauthentication.Service.AuthenticationService;
 import dev.hemraj.jwtauthentication.Service.JwtService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/api")
@@ -29,9 +30,11 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginDto loginDto){
-
-
+    public ResponseEntity<?> login(@RequestBody LoginDto loginDto){
+        boolean verified = authenticationService.verification(loginDto.getEmail());
+        if(!verified){
+            return ResponseEntity.badRequest().body("user email not verified");
+        }
         User authenticatedUser = authenticationService.authenticate(loginDto);
         String jwtToken = jwtService.generateToken(authenticatedUser);
         LoginResponse loginResponse = new LoginResponse();

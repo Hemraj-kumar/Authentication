@@ -83,7 +83,8 @@ public class AuthenticationService {
         }
         return ResponseEntity.badRequest().body("error : couldn't verify email!");
     }
-    public User authenticate(LoginDto loginDto){
+
+    public User authenticate(LoginDto loginDto) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginDto.getEmail(),
@@ -91,7 +92,13 @@ public class AuthenticationService {
                 )
         );
         return userRepository.findByEmailIgnoreCase(loginDto.getEmail()).orElseThrow();
+
     }
+    public boolean verification(String email ){
+        boolean verified = userRepository.findUserByEmailIgnoreCase(email).isVerified();
+        return verified;
+    }
+
     public List<User> allUsers(){
         List<User> all = new ArrayList<>();
         userRepository.findAll().forEach(all::add);
