@@ -28,7 +28,7 @@ public class AuthenticationController {
     public ResponseEntity<?> confirmUserAccount(@RequestParam("confirmation_token") String token ){
         return authenticationService.confirmEmail(token);
     }
-
+    //added comments
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDto loginDto){
         boolean verified = authenticationService.verification(loginDto.getEmail());
