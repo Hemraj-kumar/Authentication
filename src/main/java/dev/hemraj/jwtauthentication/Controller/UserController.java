@@ -25,7 +25,7 @@ public class UserController {
         List<User> users = userService.allUsers();
         return users;
     }
-
+    //added a comment
     @PutMapping("/profile")
     public ResponseEntity<?> profileDetailsController(@RequestHeader Integer id, @RequestBody ProfileDto profileDto){
         try{
