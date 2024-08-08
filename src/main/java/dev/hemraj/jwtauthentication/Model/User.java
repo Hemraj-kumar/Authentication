@@ -26,6 +26,36 @@ public class User implements UserDetails {
     private Date updatedAt;
     @Column(name = "is_verified",nullable = false)
     private boolean verified=false;
+    @Column(name = "Designation",length = 25)
+    private String desgination;
+    @Column(name = "about",length = 100)
+    private String about;
+    @Column(name = "Location",length = 20)
+    private String location;
+
+    public String getDesgination() {
+        return desgination;
+    }
+
+    public void setDesgination(String desgination) {
+        this.desgination = desgination;
+    }
+
+    public String getAbout() {
+        return about;
+    }
+
+    public void setAbout(String about) {
+        this.about = about;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
 
     public boolean isVerified() {
         return verified;

@@ -1,17 +1,22 @@
 package dev.hemraj.jwtauthentication.Controller;
 
 import dev.hemraj.jwtauthentication.RequestDto.LoginDto;
+import dev.hemraj.jwtauthentication.RequestDto.ProfileDto;
 import dev.hemraj.jwtauthentication.RequestDto.RegisterDto;
 import dev.hemraj.jwtauthentication.Model.User;
 import dev.hemraj.jwtauthentication.ResponseDto.LoginResponse;
 import dev.hemraj.jwtauthentication.Service.AuthenticationService;
 import dev.hemraj.jwtauthentication.Service.JwtService;
+import dev.hemraj.jwtauthentication.Service.UserService;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/api")
 @RestController
+@Slf4j
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
     private final JwtService jwtService;
