@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -17,18 +18,20 @@ import java.util.Optional;
 @Slf4j
 public class UserService {
     private final UserRepository userRepository;
+
     public UserService(UserRepository userRepository){
         this.userRepository = userRepository;
+
     }
     public List<User> allUsers() {
         List<User> users = new ArrayList<>();
-
+        log.info("Received request to list users");
         userRepository.findAll().forEach(users::add);
-
+        log.info("returning list of users!");
         return users;
     }
 
-    public ResponseEntity<?> updateProfileDetails(Integer id,ProfileDto profileDto){
+    public ResponseEntity<?> updateProfileDetails(Integer id, ProfileDto profileDto){
         String name = "";
         try{
             //update user_data set about=?, location = ?, designation = ? where id=?;

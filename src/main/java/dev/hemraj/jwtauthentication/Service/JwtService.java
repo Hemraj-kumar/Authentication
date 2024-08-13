@@ -5,24 +5,28 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
 @Service
+@Slf4j
 public class JwtService {
     @Value("${security.jwt.secret-key}")
     private String secretKey;
 
     @Value("${security.jwt.expiration-time}")
     private long jwtExpiration;
-
+    private Date expiresIn;
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
@@ -40,8 +44,9 @@ public class JwtService {
         return buildToken(extraClaims, userDetails, jwtExpiration);
     }
 
-    public long getExpirationTime() {
-        return jwtExpiration;
+    public ZonedDateTime getExpirationTime() {
+        ZonedDateTime gmtTime = expiresIn.toInstant().atZone(ZoneId.of("UTC"));
+        return gmtTime.withZoneSameInstant(ZoneId.of("Asia/Kolkata"));
     }
 
     private String buildToken(
@@ -49,13 +54,14 @@ public class JwtService {
             UserDetails userDetails,
             long expiration
     ) {
+        expiresIn=new Date(System.currentTimeMillis() + expiration);
         return Jwts
                 .builder()
                 .setClaims(extraClaims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
+                .setExpiration(expiresIn)
+                .signWith(getSignInKey(),SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -64,7 +70,7 @@ public class JwtService {
         return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
     }
 
-    private boolean isTokenExpired(String token) {
+    public boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
 

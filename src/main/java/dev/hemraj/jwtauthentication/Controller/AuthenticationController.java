@@ -14,7 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
-@RequestMapping("/api")
+@RequestMapping("/api/public")
 @RestController
 @Slf4j
 public class AuthenticationController {
@@ -33,7 +33,6 @@ public class AuthenticationController {
     public ResponseEntity<?> confirmUserAccount(@RequestParam("confirmation_token") String token ){
         return authenticationService.confirmEmail(token);
     }
-    //added comments
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDto loginDto){
         boolean verified = authenticationService.verification(loginDto.getEmail());
@@ -45,6 +44,7 @@ public class AuthenticationController {
         LoginResponse loginResponse = new LoginResponse();
         loginResponse.setToken(jwtToken);
         loginResponse.setExpiresIn(jwtService.getExpirationTime());
+        loginResponse.setUserName(jwtService.extractUsername(jwtToken));
         return ResponseEntity.ok(loginResponse);
     }
 }
