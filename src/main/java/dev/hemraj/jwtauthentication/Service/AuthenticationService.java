@@ -1,5 +1,6 @@
 package dev.hemraj.jwtauthentication.Service;
 
+import dev.hemraj.jwtauthentication.Enum.TokenType;
 import dev.hemraj.jwtauthentication.Model.ConfirmationToken;
 import dev.hemraj.jwtauthentication.Repository.ConfirmationTokenRepository;
 import dev.hemraj.jwtauthentication.RequestDto.LoginDto;
@@ -51,7 +52,7 @@ public class AuthenticationService {
             user.setVerified(false);
             userRepository.save(user);
 
-            ConfirmationToken confirmationToken = new ConfirmationToken(user);
+            ConfirmationToken confirmationToken = new ConfirmationToken(user, TokenType.SIGNUP_CONFIRMATION);
             confirmationTokenRepository.save(confirmationToken);
 
             SimpleMailMessage mailMessage = new SimpleMailMessage();

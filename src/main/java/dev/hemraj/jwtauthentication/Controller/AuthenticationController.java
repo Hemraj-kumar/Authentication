@@ -1,7 +1,7 @@
 package dev.hemraj.jwtauthentication.Controller;
 
 import dev.hemraj.jwtauthentication.RequestDto.LoginDto;
-import dev.hemraj.jwtauthentication.RequestDto.ProfileDto;
+import dev.hemraj.jwtauthentication.RequestDto.PasswordDto;
 import dev.hemraj.jwtauthentication.RequestDto.RegisterDto;
 import dev.hemraj.jwtauthentication.Model.User;
 import dev.hemraj.jwtauthentication.ResponseDto.LoginResponse;
@@ -9,9 +9,7 @@ import dev.hemraj.jwtauthentication.Service.AuthenticationService;
 import dev.hemraj.jwtauthentication.Service.JwtService;
 import dev.hemraj.jwtauthentication.Service.UserService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/api/public")
@@ -20,9 +18,11 @@ import org.springframework.web.bind.annotation.*;
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
     private final JwtService jwtService;
-    public AuthenticationController(AuthenticationService authenticationService, JwtService jwtService){
+    private final UserService userService;
+    public AuthenticationController(AuthenticationService authenticationService, JwtService jwtService,UserService userService){
         this.authenticationService = authenticationService;
         this.jwtService = jwtService;
+        this.userService = userService;
     }
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody RegisterDto registerDto){
@@ -47,4 +47,18 @@ public class AuthenticationController {
         loginResponse.setUserName(jwtService.extractUsername(jwtToken));
         return ResponseEntity.ok(loginResponse);
     }
+    @PatchMapping("/changePassword")
+    public ResponseEntity<?> changePassword(@RequestParam(name = "user_email") String userEmail ){
+        try{
+            ResponseEntity<?> passwordResponse = userService.changePasswordService(userEmail);
+            return passwordResponse;
+        }catch (Exception err){
+            log.error("Exception in change password : ", err);
+        }
+        return ResponseEntity.badRequest().body("Email or Password is not valid!");
+    }
+//    @PatchMapping("/confirm-ChangePassword")
+//    public ResponseEntity<?> validateLinkForToken(@RequestParam(name = "unique_token")String token, @RequestBody PasswordDto passwordDto){
+//
+//    }
 }
