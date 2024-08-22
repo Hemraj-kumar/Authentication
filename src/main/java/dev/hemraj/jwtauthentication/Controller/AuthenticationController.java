@@ -1,5 +1,6 @@
 package dev.hemraj.jwtauthentication.Controller;
 
+import dev.hemraj.jwtauthentication.Model.ForgotPassword;
 import dev.hemraj.jwtauthentication.RequestDto.LoginDto;
 import dev.hemraj.jwtauthentication.RequestDto.PasswordDto;
 import dev.hemraj.jwtauthentication.RequestDto.RegisterDto;
@@ -9,6 +10,7 @@ import dev.hemraj.jwtauthentication.Service.AuthenticationService;
 import dev.hemraj.jwtauthentication.Service.JwtService;
 import dev.hemraj.jwtauthentication.Service.UserService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -57,8 +59,18 @@ public class AuthenticationController {
         }
         return ResponseEntity.badRequest().body("Email or Password is not valid!");
     }
-//    @PatchMapping("/confirm-ChangePassword")
-//    public ResponseEntity<?> validateLinkForToken(@RequestParam(name = "unique_token")String token, @RequestBody PasswordDto passwordDto){
-//
-//    }
+    @PostMapping("/confirm-ChangePassword")
+    public ResponseEntity<?> confirmChangePassword(@RequestHeader(name = "unique_token") String confirmation_Token, @RequestBody PasswordDto passwordDto) {
+        try {
+            String new_password = passwordDto.getNew_password();
+            String confirmPassword = passwordDto.getConfirm_password();
+            if(!confirmPassword.isBlank() && !new_password.isBlank()){
+                ResponseEntity<?> validationResponse = userService.confirmNewPassword(confirmPassword,new_password,confirmation_Token);
+                return validationResponse;
+            }
+        } catch (Exception err) {
+            log.error("Exception in validating token : ", err);
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Token");
+    }
 }

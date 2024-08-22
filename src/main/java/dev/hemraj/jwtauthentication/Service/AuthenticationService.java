@@ -52,7 +52,7 @@ public class AuthenticationService {
             user.setVerified(false);
             userRepository.save(user);
 
-            ConfirmationToken confirmationToken = new ConfirmationToken(user, TokenType.SIGNUP_CONFIRMATION);
+            ConfirmationToken confirmationToken = new ConfirmationToken(user);
             confirmationTokenRepository.save(confirmationToken);
 
             SimpleMailMessage mailMessage = new SimpleMailMessage();
