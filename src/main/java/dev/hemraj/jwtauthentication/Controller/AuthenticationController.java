@@ -52,8 +52,7 @@ public class AuthenticationController {
     @PatchMapping("/changePassword")
     public ResponseEntity<?> changePassword(@RequestParam(name = "user_email") String userEmail ){
         try{
-            ResponseEntity<?> passwordResponse = userService.changePasswordService(userEmail);
-            return passwordResponse;
+            return userService.changePasswordService(userEmail);
         }catch (Exception err){
             log.error("Exception in change password : ", err);
         }
@@ -65,8 +64,7 @@ public class AuthenticationController {
             String new_password = passwordDto.getNew_password();
             String confirmPassword = passwordDto.getConfirm_password();
             if(!confirmPassword.isBlank() && !new_password.isBlank()){
-                ResponseEntity<?> validationResponse = userService.confirmNewPassword(confirmPassword,new_password,confirmation_Token);
-                return validationResponse;
+                return userService.confirmNewPassword(confirmPassword,new_password,confirmation_Token);
             }
         } catch (Exception err) {
             log.error("Exception in validating token : ", err);

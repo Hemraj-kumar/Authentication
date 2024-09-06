@@ -1,5 +1,6 @@
 package dev.hemraj.jwtauthentication.Controller;
 
+import dev.hemraj.jwtauthentication.Model.ImageData;
 import dev.hemraj.jwtauthentication.Model.User;
 import dev.hemraj.jwtauthentication.RequestDto.ProfileDto;
 import dev.hemraj.jwtauthentication.Service.JwtService;
@@ -7,10 +8,14 @@ import dev.hemraj.jwtauthentication.Service.UserService;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOError;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -19,11 +24,9 @@ import java.util.List;
 @Slf4j
 public class UserController {
     private final UserService userService;
-    private final JwtService jwtService;
 
     public UserController(UserService userService, JwtService jwtService) {
         this.userService = userService;
-        this.jwtService = jwtService;
     }
 
     @GetMapping("/list-users")
@@ -52,5 +55,34 @@ public class UserController {
             log.error("Exception  : ", err);
         }
         return ResponseEntity.badRequest().body("Error in updating profile details");
+    }
+
+    @PostMapping("/image")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> uploadImagesForProfile(@RequestParam("image")MultipartFile imageFile) throws IOException {
+        try {
+            return ResponseEntity.status(HttpStatus.OK).body(userService.uploadImageService(imageFile));
+        }catch (Exception err){
+            log.error("Exception  : ",err);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in uploading image!");
+    }
+
+    @GetMapping("/info/{name}")
+    public ResponseEntity<?>  getImageInfoByName(@RequestParam("name") String name){
+        ResponseEntity<ImageData> image = userService.getImageByName(name);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(image);
+    }
+
+    @GetMapping("/image/{name}")
+    public ResponseEntity<?>  getImageByName(@RequestParam("name") String name){
+        try{
+            return userService.getImage(name);
+        }catch (Exception err){
+            log.error("Exception  : ",err);
+        }
+        return null;
     }
 }

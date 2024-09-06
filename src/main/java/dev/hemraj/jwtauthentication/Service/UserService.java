@@ -1,11 +1,16 @@
 package dev.hemraj.jwtauthentication.Service;
 
 import dev.hemraj.jwtauthentication.Model.ForgotPassword;
+import dev.hemraj.jwtauthentication.Model.ImageData;
 import dev.hemraj.jwtauthentication.Model.User;
 
 import dev.hemraj.jwtauthentication.Repository.ForgotPasswordRepository;
+import dev.hemraj.jwtauthentication.Repository.ImageDataRepository;
 import dev.hemraj.jwtauthentication.Repository.UserRepository;
 import dev.hemraj.jwtauthentication.RequestDto.ProfileDto;
+import dev.hemraj.jwtauthentication.Service.Utils.ImageUtil;
+import jakarta.persistence.Lob;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,11 +18,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 import java.time.*;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 
 @Service
@@ -27,13 +32,15 @@ public class UserService {
     private final EmailService emailService;
     private final ForgotPasswordRepository forgotPasswordRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ImageDataRepository imageDataRepository;
     public UserService(UserRepository userRepository,
                        EmailService emailService,
-                       ForgotPasswordRepository forgotPasswordRepository,PasswordEncoder passwordEncoder){
+                       ForgotPasswordRepository forgotPasswordRepository,PasswordEncoder passwordEncoder,ImageDataRepository imageDataRepository ){
         this.userRepository = userRepository;
         this.emailService = emailService;
         this.forgotPasswordRepository = forgotPasswordRepository;
         this.passwordEncoder = passwordEncoder;
+        this.imageDataRepository = imageDataRepository;
     }
     public List<User> allUsers() {
         List<User> users = new ArrayList<>();
@@ -126,5 +133,43 @@ public class UserService {
             log.error("Exception: ", err);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while updating the password");
         }
+    }
+
+
+    public ResponseEntity<?> uploadImageService(MultipartFile userImage) throws IOException {
+        try {
+            imageDataRepository.save(ImageData.builder()
+                    .name(userImage.getName())
+                    .type(userImage.getContentType())
+                    .imageData(ImageUtil.compressImage(userImage.getBytes())).build());
+            return ResponseEntity.status(HttpStatus.OK).body("Image uploaded successfully, with file name : "+userImage.getOriginalFilename());
+        }catch (Exception err){
+            log.error("Error in uploading image : ", err);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Image uploaded successfully");
+    }
+    @Transactional
+    public ResponseEntity<ImageData> getImageByName(String name){
+        try{
+            Optional<ImageData> imageData = imageDataRepository.findByName(name);
+            ImageData returnDataImage =  ImageData.builder()
+                    .name(name)
+                    .type(imageData.get().getType())
+                    .imageData(ImageUtil.decompressImage(imageData.get().getImageData())).build();
+            return ResponseEntity.status(HttpStatus.OK).body(returnDataImage);
+        }catch (Exception err){
+            log.error("Image with that name doesn't exist!");
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ImageData());
+    }
+
+    @Transactional
+    public ResponseEntity<byte[]> getImage(String name){
+        Optional<ImageData> imageData = imageDataRepository.findByName(name);
+        if(imageData.isPresent()){
+            byte[] imageOfBytes = imageData.get().getImageData();
+            return ResponseEntity.status(HttpStatus.OK).body(imageOfBytes);
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new byte[]{});
     }
 }
