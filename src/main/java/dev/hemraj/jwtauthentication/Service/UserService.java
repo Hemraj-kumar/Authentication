@@ -1,18 +1,15 @@
 package dev.hemraj.jwtauthentication.Service;
 
 import dev.hemraj.jwtauthentication.Model.ForgotPassword;
-import dev.hemraj.jwtauthentication.Model.ImageData;
 import dev.hemraj.jwtauthentication.Model.User;
 
 import dev.hemraj.jwtauthentication.Repository.ForgotPasswordRepository;
-import dev.hemraj.jwtauthentication.Repository.ImageDataRepository;
 import dev.hemraj.jwtauthentication.Repository.UserRepository;
 import dev.hemraj.jwtauthentication.RequestDto.ProfileDto;
-import dev.hemraj.jwtauthentication.Service.Utils.ImageUtil;
-import jakarta.persistence.Lob;
-import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 import org.springframework.mail.SimpleMailMessage;
@@ -21,6 +18,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.*;
 import java.util.*;
 
@@ -32,15 +32,13 @@ public class UserService {
     private final EmailService emailService;
     private final ForgotPasswordRepository forgotPasswordRepository;
     private final PasswordEncoder passwordEncoder;
-    private final ImageDataRepository imageDataRepository;
     public UserService(UserRepository userRepository,
                        EmailService emailService,
-                       ForgotPasswordRepository forgotPasswordRepository,PasswordEncoder passwordEncoder,ImageDataRepository imageDataRepository ){
+                       ForgotPasswordRepository forgotPasswordRepository,PasswordEncoder passwordEncoder){
         this.userRepository = userRepository;
         this.emailService = emailService;
         this.forgotPasswordRepository = forgotPasswordRepository;
         this.passwordEncoder = passwordEncoder;
-        this.imageDataRepository = imageDataRepository;
     }
     public List<User> allUsers() {
         List<User> users = new ArrayList<>();
@@ -136,40 +134,53 @@ public class UserService {
     }
 
 
-    public ResponseEntity<?> uploadImageService(MultipartFile userImage) throws IOException {
+    public ResponseEntity<?> uploadImageService(String uploadDirectory , MultipartFile userImage) throws IOException {
         try {
-            imageDataRepository.save(ImageData.builder()
-                    .name(userImage.getName())
-                    .type(userImage.getContentType())
-                    .imageData(ImageUtil.compressImage(userImage.getBytes())).build());
-            return ResponseEntity.status(HttpStatus.OK).body("Image uploaded successfully, with file name : "+userImage.getOriginalFilename());
-        }catch (Exception err){
+            String uniqueFileName = UUID.randomUUID()+"_"+userImage.getOriginalFilename();
+            Path uploadPath = Path.of(uploadDirectory);
+            Path filePath = uploadPath.resolve(uniqueFileName);
+
+            if(!Files.exists(uploadPath)){
+                Files.createDirectories(uploadPath);
+            }
+            Files.copy(userImage.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+            return ResponseEntity.status(HttpStatus.OK).body("image uploaded successfully : "+uniqueFileName);
+        } catch (Exception err) {
             log.error("Error in uploading image : ", err);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Image uploaded successfully");
     }
-    @Transactional
-    public ResponseEntity<ImageData> getImageByName(String name){
+    public ResponseEntity<?> getImageByName(String imageId,String fileDirectory){
+        Path imagePath = Path.of(fileDirectory, imageId);
         try{
-            Optional<ImageData> imageData = imageDataRepository.findByName(name);
-            ImageData returnDataImage =  ImageData.builder()
-                    .name(name)
-                    .type(imageData.get().getType())
-                    .imageData(ImageUtil.decompressImage(imageData.get().getImageData())).build();
-            return ResponseEntity.status(HttpStatus.OK).body(returnDataImage);
+            if(Files.exists(imagePath)){
+                byte[] imageBytes = Files.readAllBytes(imagePath);
+                String contentType = Files.probeContentType(imagePath);
+                if(contentType == null){
+                    contentType = "application/octet-stream";
+                }
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.parseMediaType(contentType));
+                return ResponseEntity.status(HttpStatus.OK)
+                        .headers(headers)
+                        .body(imageBytes);
+            }
         }catch (Exception err){
-            log.error("Image with that name doesn't exist!");
+            log.error("Exception in fetching image : ",err);
         }
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ImageData());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in fetching image");
+    }
+    public ResponseEntity<?> deleteImage(String imageId, String directory){
+        try{
+            Path deletePath = Path.of(directory, imageId);
+            if(Files.exists(deletePath)){
+                Files.deleteIfExists(deletePath);
+                return ResponseEntity.status(HttpStatus.OK).body("image deleted successfully");
+            }
+        }catch (Exception err){
+            log.error("Error in deleting a image : ",err);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in deleting the image");
     }
 
-    @Transactional
-    public ResponseEntity<byte[]> getImage(String name){
-        Optional<ImageData> imageData = imageDataRepository.findByName(name);
-        if(imageData.isPresent()){
-            byte[] imageOfBytes = imageData.get().getImageData();
-            return ResponseEntity.status(HttpStatus.OK).body(imageOfBytes);
-        }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new byte[]{});
-    }
 }

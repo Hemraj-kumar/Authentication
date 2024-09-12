@@ -9,6 +9,7 @@ import dev.hemraj.jwtauthentication.ResponseDto.LoginResponse;
 import dev.hemraj.jwtauthentication.Service.AuthenticationService;
 import dev.hemraj.jwtauthentication.Service.JwtService;
 import dev.hemraj.jwtauthentication.Service.UserService;
+import dev.hemraj.jwtauthentication.Service.Utils.Helper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,10 +22,12 @@ public class AuthenticationController {
     private final AuthenticationService authenticationService;
     private final JwtService jwtService;
     private final UserService userService;
-    public AuthenticationController(AuthenticationService authenticationService, JwtService jwtService,UserService userService){
+    private final Helper helper;
+    public AuthenticationController(AuthenticationService authenticationService, JwtService jwtService,UserService userService, Helper helper){
         this.authenticationService = authenticationService;
         this.jwtService = jwtService;
         this.userService = userService;
+        this.helper = helper;
     }
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody RegisterDto registerDto){
@@ -42,11 +45,14 @@ public class AuthenticationController {
             return ResponseEntity.badRequest().body("user email not verified");
         }
         User authenticatedUser = authenticationService.authenticate(loginDto);
-        String jwtToken = jwtService.generateToken(authenticatedUser);
+        int userId  = helper.getUserIdByUser(loginDto.getEmail());
+
+        String jwtToken = jwtService.generateToken(authenticatedUser,String.valueOf(userId));
         LoginResponse loginResponse = new LoginResponse();
         loginResponse.setToken(jwtToken);
         loginResponse.setExpiresIn(jwtService.getExpirationTime());
         loginResponse.setUserName(jwtService.extractUsername(jwtToken));
+        loginResponse.setUserid(jwtService.extractUserId(jwtToken));
         return ResponseEntity.ok(loginResponse);
     }
     @PatchMapping("/changePassword")

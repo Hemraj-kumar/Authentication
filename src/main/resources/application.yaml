@@ -10,8 +10,6 @@ spring:
           auth: true
           starttls:
             enable: true
-
-
   application:
     name: jwtAuthentication
   datasource:
@@ -25,12 +23,14 @@ spring:
   data:
     jdbc:
       dialect: mysql
+    mongodb:
+      uri: mongodb+srv://blogtest:test@cluster0.6uech.mongodb.net/blogdb?retryWrites=true&w=majority&appName=Cluster0
 server:
   port: 4000
 security:
   jwt:
     secret-key: gCraGFn1oKzn/YwTY7kQprMnuHgWPV6ZdBtv82nmWPA=
-    expiration-time: 120000
+    expiration-time: 600000
 logging:
   level:
     root: info
@@ -38,5 +38,3 @@ logging:
   file:
     name: auth.log
     path: /var/jwtauth/logs
-
-

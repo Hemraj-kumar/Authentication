@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.security.Key;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,7 +29,7 @@ public class JwtService {
     private long jwtExpiration;
     private Date expiresIn;
     public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
+        return  extractClaim(token, Claims::getSubject);
     }
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
@@ -36,12 +37,13 @@ public class JwtService {
         return claimsResolver.apply(claims);
     }
 
-    public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails);
+    //actually calling method
+    public String generateToken(UserDetails userDetails,String userID) {
+        return generateToken(new HashMap<>(), userDetails,userID);
     }
 
-    public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
-        return buildToken(extraClaims, userDetails, jwtExpiration);
+    public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails,String userID) {
+        return buildToken(extraClaims, userDetails, jwtExpiration, userID);
     }
 
     public ZonedDateTime getExpirationTime() {
@@ -52,8 +54,12 @@ public class JwtService {
     private String buildToken(
             Map<String, Object> extraClaims,
             UserDetails userDetails,
-            long expiration
+            long expiration,
+            String userID
     ) {
+        String encodedId = Base64.getEncoder().encodeToString(userID.getBytes());
+        extraClaims.put("userId", encodedId);
+
         expiresIn=new Date(System.currentTimeMillis() + expiration);
         return Jwts
                 .builder()
@@ -91,5 +97,8 @@ public class JwtService {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
+    public String extractUserId(String token) {
+        return extractClaim(token, claims -> claims.get("userId", String.class));
 
+    }
 }
