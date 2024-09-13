@@ -9,21 +9,27 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+import java.util.Base64;
+
 @Slf4j
 @Service
 public class PostBlogService {
+
     @Autowired
     MongoTemplate mongoTemplate;
-    public ResponseEntity<?> createBlog(CreateBlogDto blogPostData){
-        try {
 
+    public ResponseEntity<?> createBlog(CreateBlogDto blogPostData,String authorId){
+        try {
             Post newBlog = new Post();
+//            String decodedAuthorId = Arrays.toString(Base64.getDecoder().decode(blogPostData.getAuthor_id()));
+
+//            newBlog.setAuthor_id(decodedAuthorId);
             newBlog.setTitle(blogPostData.getTitle());
             newBlog.setContent(blogPostData.getContent());
             if (blogPostData.getCommments().length == 0) {
                 blogPostData.setCommments(new String[]{});
             }
-            newBlog.setAuthor_id(blogPostData.getAuthor_id());
             mongoTemplate.insert(blogPostData);
             return ResponseEntity.status(HttpStatus.OK).body("Data is been successfully saved!");
         }catch (Exception err){
