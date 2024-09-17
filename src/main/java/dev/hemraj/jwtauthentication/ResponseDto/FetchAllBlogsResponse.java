@@ -1,19 +1,19 @@
-package dev.hemraj.jwtauthentication.Model.Blog;
+package dev.hemraj.jwtauthentication.ResponseDto;
 
+import dev.hemraj.jwtauthentication.Model.Blog.Comments;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.mongodb.core.mapping.Document;
+
 import java.util.List;
 
-@Document("Post")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Post {
-    private String author_id;
+public class FetchAllBlogsResponse {
+    private String authorId;
     private String title;
     private String content;
-    private List<Comments> comments;
+    private List<Comments> commentsList;
     private String createdAt;
 }

@@ -3,7 +3,9 @@ package dev.hemraj.jwtauthentication.Service.BlogService;
 import dev.hemraj.jwtauthentication.Model.Blog.Comments;
 import dev.hemraj.jwtauthentication.Model.Blog.Post;
 import dev.hemraj.jwtauthentication.RequestDto.CreateBlogDto;
+import dev.hemraj.jwtauthentication.ResponseDto.FetchAllBlogsResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.connector.Response;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -14,11 +16,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import javax.xml.stream.events.Comment;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 @Slf4j
@@ -31,7 +33,10 @@ public class PostBlogService {
     public ResponseEntity<?> createBlog(CreateBlogDto blogPostData, String authorId) {
         try {
             Post blog = new Post();
-            blog.setAuthor_id(authorId);
+
+            byte[] decodedAuthorId = Base64.getDecoder().decode(authorId);
+            blog.setAuthor_id(String.valueOf(decodedAuthorId[0]));
+
             blog.setTitle(blogPostData.getTitle());
             blog.setContent(blogPostData.getContent());
 
@@ -65,11 +70,15 @@ public class PostBlogService {
             Query query = new Query(Criteria.where("_id").is(objectId));
             Update update = new Update();
             if (newComments != null) {
-                if (blogData.getComments().isEmpty()) {
-                    update.set("comments",List.of(newComments));
-                } else {
-                    update.push("comments", newComments);
-                }
+
+                byte[] decodedCommenterId = Base64.getDecoder().decode(newComments.getCommentAuthorId());
+                newComments.setCommentAuthorId(String.valueOf(decodedCommenterId[0]));
+
+                ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
+                DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                newComments.setCreatedAt(zonedDateTime.format(dateTimeFormatter));
+
+                update.push("comments", newComments);
                 mongoTemplate.updateFirst(query, update, Post.class);
 
                 return ResponseEntity.status(HttpStatus.OK).body("Comment added successfully!");
@@ -105,28 +114,67 @@ public class PostBlogService {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in deleting in the blog");
     }
 
-    public ResponseEntity<?> getBlogs(){
+    public List<FetchAllBlogsResponse> getBlogs(){
         try {
-            List<Post> getAllData = mongoTemplate.findAll(Post.class);
-            return ResponseEntity.status(HttpStatus.OK).body(getAllData);
+            Query query = new Query();
+            List<Post> posts = mongoTemplate.find(query, Post.class);
+            List<FetchAllBlogsResponse> resultantData = new ArrayList<>();
+            for(Post index : posts){
+                FetchAllBlogsResponse data = new FetchAllBlogsResponse();
+                data.setTitle(index.getTitle());
+                data.setContent(index.getContent());
+                data.setAuthorId(index.getAuthor_id());
+                data.setCreatedAt(index.getCreatedAt());
+
+                if(index.getComments()!=null) {
+                    data.setCommentsList(index.getComments());
+                }
+                resultantData.add(data);
+            }
+            return resultantData;
+
+
         }catch (Exception err){
             log.error("Exception in fetching data :" ,err);
         }
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in fetching data");
+        return new ArrayList<>();
     }
 
-//    public ResponseEntity<?> editComment(String commentId, String alternateComment, String authorId,String userId,String blogID){
-//        try {
-//            Query query = new Query(Criteria.where("_id").is(blogID)
-//                    .and("comments.id").is(commentId)
-//                    .and("comments.commentAuthorId").is(userId));
-//
-//            Update update = new Update().set("comments.$.comments",alternateComment);
-//            mongoTemplate.updateFirst(query, update, Post.class);
-//        }catch (Exception err){
-//            log.error("Error in editing the comment  :", err);
-//        }
-//    }
+    public ResponseEntity<?> editComment(String commentId, String alternateComment,String userId,String blogID){
+        try {
+           ObjectId objectId =new ObjectId(blogID);
+           Query query = new Query(Criteria.where("_id").is(objectId));
+           boolean idExists = mongoTemplate.exists(query, Post.class);
+
+           if(!idExists){
+               return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Given blogId not found");
+           }
+
+           Query commentQuery = new Query(Criteria.where("_id").is(objectId)
+                    .and("comments.id").is(commentId));
+           Post commentedBlog = mongoTemplate.findOne(commentQuery, Post.class);
+           if(commentedBlog == null || commentedBlog.getComments().stream().noneMatch(k -> k.getId().equals(commentId))){
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Given commentId not found");
+           }
+
+           boolean isAuthorized = commentedBlog.getComments().stream().
+                   anyMatch(k -> k.getId().equals(commentId) && k.getCommentAuthorId().equals(userId));
+
+           if(!isAuthorized){
+               return ResponseEntity.status(HttpStatus.FORBIDDEN).body("User do not have access to edit the comment");
+           }
+
+            Query udpateQuery = new Query(Criteria.where("_id").is(objectId)
+                    .and("comments.id").is(commentId));
+            Update update = new Update().set("comments.$.comment", alternateComment);
+            mongoTemplate.updateFirst(udpateQuery, update, Post.class);
+            return ResponseEntity.status(HttpStatus.OK).body("the changed comment is : "+alternateComment);
+
+        }catch (Exception err){
+            log.error("Error in editing the comment  :", err);
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in updating the comment");
+    }
 
 
 }

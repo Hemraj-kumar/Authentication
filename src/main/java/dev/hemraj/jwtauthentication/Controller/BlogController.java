@@ -1,14 +1,20 @@
 package dev.hemraj.jwtauthentication.Controller;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import dev.hemraj.jwtauthentication.Model.Blog.Comments;
+import dev.hemraj.jwtauthentication.Model.Blog.Post;
 import dev.hemraj.jwtauthentication.RequestDto.CreateBlogDto;
+import dev.hemraj.jwtauthentication.ResponseDto.FetchAllBlogsResponse;
 import dev.hemraj.jwtauthentication.Service.BlogService.PostBlogService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.service.annotation.DeleteExchange;
+
+import java.lang.reflect.Type;
+import java.util.List;
 
 
 @RequestMapping("/api/blog")
@@ -56,10 +62,23 @@ public class BlogController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> fetchAllBlogs(){
         try{
-            return postBlogService.getBlogs();
+           List<FetchAllBlogsResponse> blogData = postBlogService.getBlogs();
+            return ResponseEntity.status(HttpStatus.OK).body(blogData);
         }catch (Exception err){
             log.error("Error in fetching the data",err);
         }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in fetching all the blogs");
+    }
+
+    @PutMapping("/editComment")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> editCommentInBlog(@RequestHeader("blogID") String blogID,@RequestHeader("commentID") String commentID,
+                                               @RequestHeader("userID") String userID, @RequestParam("comment") String comment ){
+        try{
+            return postBlogService.editComment(commentID, comment, userID ,blogID);
+        }catch (Exception err){
+            log.error("Error in editing the comment");
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error in editing the comment");
     }
 }

@@ -7,6 +7,7 @@ import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -22,15 +23,11 @@ public class Comments {
     private String comment;
     private String createdAt;
 
-    public Comments(String id, String commentAuthorId, String name, String comment,String createdAt){
+    public Comments(String id, String commentAuthorId, String name, String comment){
         this.id = UUID.randomUUID().toString();
         this.comment = comment;
         this.commentAuthorId = commentAuthorId;
         this.name= name;
-
-        ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        this.createdAt = zonedDateTime.format(dateTimeFormatter);
     }
 
 }
