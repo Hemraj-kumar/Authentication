@@ -1,9 +1,7 @@
 package dev.hemraj.jwtauthentication.Controller;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import dev.hemraj.jwtauthentication.Model.Blog.Comments;
-import dev.hemraj.jwtauthentication.Model.Blog.Post;
+
 import dev.hemraj.jwtauthentication.RequestDto.CreateBlogDto;
 import dev.hemraj.jwtauthentication.ResponseDto.FetchAllBlogsResponse;
 import dev.hemraj.jwtauthentication.Service.BlogService.PostBlogService;
@@ -13,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.lang.reflect.Type;
 import java.util.List;
 
 

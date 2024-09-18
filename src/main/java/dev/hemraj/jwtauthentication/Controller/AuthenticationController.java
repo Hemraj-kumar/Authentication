@@ -1,6 +1,5 @@
 package dev.hemraj.jwtauthentication.Controller;
 
-import dev.hemraj.jwtauthentication.Model.ForgotPassword;
 import dev.hemraj.jwtauthentication.RequestDto.LoginDto;
 import dev.hemraj.jwtauthentication.RequestDto.PasswordDto;
 import dev.hemraj.jwtauthentication.RequestDto.RegisterDto;
@@ -31,8 +30,7 @@ public class AuthenticationController {
     }
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody RegisterDto registerDto){
-        ResponseEntity<?> registeredUser = authenticationService.register(registerDto);
-        return registeredUser;
+        return authenticationService.register(registerDto);
     }
     @PostMapping("/confirm-account")
     public ResponseEntity<?> confirmUserAccount(@RequestParam("confirmation_token") String token ){
@@ -48,12 +46,14 @@ public class AuthenticationController {
         int userId  = helper.getUserIdByUser(loginDto.getEmail());
 
         String jwtToken = jwtService.generateToken(authenticatedUser,String.valueOf(userId));
+//        String refreshToken = jwtService.generateRefreshToken(authenticatedUser, String.valueOf(userId));
+
         LoginResponse loginResponse = new LoginResponse();
         loginResponse.setToken(jwtToken);
         loginResponse.setExpiresIn(jwtService.getExpirationTime());
         loginResponse.setUserName(jwtService.extractUsername(jwtToken));
         loginResponse.setUserid(jwtService.extractUserId(jwtToken));
-        return ResponseEntity.ok(loginResponse);
+        return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
     }
     @PatchMapping("/changePassword")
     public ResponseEntity<?> changePassword(@RequestParam(name = "user_email") String userEmail ){
@@ -77,4 +77,17 @@ public class AuthenticationController {
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Token");
     }
+
+//    @PostMapping("/token/refresh")
+//    public ResponseEntity<?> refreshAccessToken(@RequestHeader("AuhorizationToken") String refreshToken){
+//        if(refreshToken!=null && refreshToken.startsWith("Bearer")){
+//            refreshToken = refreshToken.substring(7);
+//            String userEmail = jwtService.extractUsername(refreshToken);
+//
+//            if(userEmail!=null && jwtService.isRefreshToken(refreshToken)){
+//
+//            }
+//        }
+//    }
+
 }

@@ -96,8 +96,7 @@ public class AuthenticationService {
 
     }
     public boolean verification(String email ){
-        boolean verified = userRepository.findUserByEmailIgnoreCase(email).isVerified();
-        return verified;
+        return userRepository.findUserByEmailIgnoreCase(email).isVerified();
     }
 
     public List<User> allUsers(){

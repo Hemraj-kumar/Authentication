@@ -24,9 +24,10 @@ import java.util.function.Function;
 public class JwtService {
     @Value("${security.jwt.secret-key}")
     private String secretKey;
-
     @Value("${security.jwt.expiration-time}")
     private long jwtExpiration;
+    @Value("${security.jwt.refreshtoken.expiration-time}")
+    private long jwtRefreshExpiration;
     private Date expiresIn;
     public String extractUsername(String token) {
         return  extractClaim(token, Claims::getSubject);
@@ -38,10 +39,14 @@ public class JwtService {
     }
 
     //actually calling method
-    public String generateToken(UserDetails userDetails,String userID) {
+    public String generateToken(UserDetails userDetails, String userID) {
         return generateToken(new HashMap<>(), userDetails,userID);
     }
-
+//    public String generateRefreshToken(UserDetails userDetails, String userID){
+//         Map<String, Object> extraClaims = new HashMap<>();
+//         extraClaims.put("isRefreshToken", true);
+//         return buildToken(extraClaims, userDetails, jwtRefreshExpiration, userID);
+//    }
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails,String userID) {
         return buildToken(extraClaims, userDetails, jwtExpiration, userID);
     }
@@ -73,13 +78,14 @@ public class JwtService {
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
+//        boolean isRefresh = isRefreshToken(token);
         return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
     }
 
     public boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
-
+//    public boolean isRefreshToken(String token) { return extractClaim(token, claims -> claims.get("isRefreshToken", Boolean.class));}
     private Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }

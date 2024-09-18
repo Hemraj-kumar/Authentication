@@ -20,6 +20,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 
@@ -35,7 +36,7 @@ public class PostBlogService {
             Post blog = new Post();
 
             byte[] decodedAuthorId = Base64.getDecoder().decode(authorId);
-            blog.setAuthor_id(String.valueOf(decodedAuthorId[0]));
+            blog.setAuthor_id(new String(decodedAuthorId));
 
             blog.setTitle(blogPostData.getTitle());
             blog.setContent(blogPostData.getContent());
@@ -72,7 +73,7 @@ public class PostBlogService {
             if (newComments != null) {
 
                 byte[] decodedCommenterId = Base64.getDecoder().decode(newComments.getCommentAuthorId());
-                newComments.setCommentAuthorId(String.valueOf(decodedCommenterId[0]));
+                newComments.setCommentAuthorId(new String(decodedCommenterId));
 
                 ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
                 DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -146,6 +147,8 @@ public class PostBlogService {
            Query query = new Query(Criteria.where("_id").is(objectId));
            boolean idExists = mongoTemplate.exists(query, Post.class);
 
+           byte[] decodedByte = Base64.getDecoder().decode(userId);
+
            if(!idExists){
                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Given blogId not found");
            }
@@ -158,7 +161,7 @@ public class PostBlogService {
            }
 
            boolean isAuthorized = commentedBlog.getComments().stream().
-                   anyMatch(k -> k.getId().equals(commentId) && k.getCommentAuthorId().equals(userId));
+                   anyMatch(k -> k.getId().equals(commentId) && k.getCommentAuthorId().equals(new String(decodedByte)));
 
            if(!isAuthorized){
                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("User do not have access to edit the comment");

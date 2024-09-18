@@ -14,11 +14,11 @@ public class Helper {
     public Helper(UserRepository userRepository){
         this.userRepository = userRepository;
     }
-    public int getUserIdByUser(String email){
+    public int getUserIdByUser(String email) {
         try {
-            User user= userRepository.findUserByEmailIgnoreCase(email);
+            User user = userRepository.findUserByEmailIgnoreCase(email);
             return user.getId();
-        }catch (Exception err){
+        } catch (Exception err) {
             log.error("userId not found");
         }
         return 0;
