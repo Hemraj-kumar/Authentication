@@ -45,11 +45,12 @@ public class AuthenticationController {
         User authenticatedUser = authenticationService.authenticate(loginDto);
         int userId  = helper.getUserIdByUser(loginDto.getEmail());
 
-        String jwtToken = jwtService.generateToken(authenticatedUser,String.valueOf(userId));
-//        String refreshToken = jwtService.generateRefreshToken(authenticatedUser, String.valueOf(userId));
+        String jwtToken = jwtService.generateAccessToken(authenticatedUser,String.valueOf(userId));
+        String refreshToken = jwtService.generateRefreshToken(authenticatedUser, String.valueOf(userId));
 
         LoginResponse loginResponse = new LoginResponse();
-        loginResponse.setToken(jwtToken);
+        loginResponse.setAccessToken(jwtToken);
+        loginResponse.setRefreshToken(refreshToken);
         loginResponse.setExpiresIn(jwtService.getExpirationTime());
         loginResponse.setUserName(jwtService.extractUsername(jwtToken));
         loginResponse.setUserid(jwtService.extractUserId(jwtToken));
@@ -78,16 +79,19 @@ public class AuthenticationController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Token");
     }
 
-//    @PostMapping("/token/refresh")
-//    public ResponseEntity<?> refreshAccessToken(@RequestHeader("AuhorizationToken") String refreshToken){
-//        if(refreshToken!=null && refreshToken.startsWith("Bearer")){
-//            refreshToken = refreshToken.substring(7);
-//            String userEmail = jwtService.extractUsername(refreshToken);
-//
-//            if(userEmail!=null && jwtService.isRefreshToken(refreshToken)){
-//
-//            }
-//        }
-//    }
+    @PostMapping("/token/refresh")
+    public ResponseEntity<?> refreshAccessToken(@RequestHeader("AuhorizationToken") String refreshToken){
+        try {
+            if (refreshToken != null && refreshToken.startsWith("Bearer")) {
+                String originalRefreshToken = refreshToken.substring(7);
+                return jwtService.refreshAccessToken(originalRefreshToken);
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Token or Token not found");
+            }
+        }catch (Exception err){
+            log.error("error in refreshing the access token");
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("error in refreshing the access token");
+    }
 
 }

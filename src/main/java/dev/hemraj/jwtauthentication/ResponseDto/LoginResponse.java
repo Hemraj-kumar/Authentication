@@ -1,13 +1,21 @@
 package dev.hemraj.jwtauthentication.ResponseDto;
 
 import java.time.ZonedDateTime;
-import java.util.Date;
 
 public class LoginResponse {
-    private String token;
+    private String accessToken;
+    private String refreshToken;
     private ZonedDateTime expiresIn;
     private String userName;
     private String userId;
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
 
     public String getUserid() {
         return userId;
@@ -25,12 +33,12 @@ public class LoginResponse {
         this.userName = userName;
     }
 
-    public String getToken() {
-        return token;
+    public String getAccessToken() {
+        return accessToken;
     }
 
-    public void setToken(String token) {
-        this.token = token;
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
     }
 
     public ZonedDateTime getExpiresIn() {

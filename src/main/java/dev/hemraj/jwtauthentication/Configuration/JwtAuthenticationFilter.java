@@ -62,11 +62,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
-//                else if(jwtService.isRefreshToken(jwt)){
-//                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-//                    response.getWriter().write("Access token is not valid for this request. Use refresh token to get a new access token.");
-//                    return;
-//                }
+
                 else{
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     response.getWriter().write("Invalid or Expired Token");

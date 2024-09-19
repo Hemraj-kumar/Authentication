@@ -7,7 +7,11 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
@@ -29,6 +33,10 @@ public class JwtService {
     @Value("${security.jwt.refreshtoken.expiration-time}")
     private long jwtRefreshExpiration;
     private Date expiresIn;
+    private final UserDetailsService userDetailsService;
+    public JwtService(UserDetailsService userDetailsService){
+        this.userDetailsService = userDetailsService;
+    }
     public String extractUsername(String token) {
         return  extractClaim(token, Claims::getSubject);
     }
@@ -37,16 +45,13 @@ public class JwtService {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
-
-    //actually calling method
-    public String generateToken(UserDetails userDetails, String userID) {
+    public String generateRefreshToken(UserDetails userDetails, String userID){
+        return buildToken(new HashMap<>(), userDetails, jwtRefreshExpiration, userID);
+    }
+    public String generateAccessToken(UserDetails userDetails, String userID) {
         return generateToken(new HashMap<>(), userDetails,userID);
     }
-//    public String generateRefreshToken(UserDetails userDetails, String userID){
-//         Map<String, Object> extraClaims = new HashMap<>();
-//         extraClaims.put("isRefreshToken", true);
-//         return buildToken(extraClaims, userDetails, jwtRefreshExpiration, userID);
-//    }
+
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails,String userID) {
         return buildToken(extraClaims, userDetails, jwtExpiration, userID);
     }
@@ -78,14 +83,12 @@ public class JwtService {
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
-//        boolean isRefresh = isRefreshToken(token);
         return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
     }
 
     public boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
-//    public boolean isRefreshToken(String token) { return extractClaim(token, claims -> claims.get("isRefreshToken", Boolean.class));}
     private Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
@@ -105,6 +108,25 @@ public class JwtService {
     }
     public String extractUserId(String token) {
         return extractClaim(token, claims -> claims.get("userId", String.class));
+    }
+    public ResponseEntity<?> refreshAccessToken(String refreshToken ){
+        try {
+            String userID = extractUserId(refreshToken);
+            if (isTokenExpired(refreshToken)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh Token Expired");
+            }
 
+            UserDetails userDetails = userDetailsService.loadUserByUsername(extractUsername(refreshToken));
+            if (isTokenValid(refreshToken, userDetails)) {
+                String newAccessToken = generateAccessToken(userDetails, userID);
+                return ResponseEntity.status(HttpStatus.OK).body(newAccessToken);
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("refresh token expired");
+            }
+        }catch (Exception err){
+            log.error("Error in refreshing the access token : ", err);
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error in refreshing access token");
     }
 }
+
