@@ -1,5 +1,6 @@
 package dev.hemraj.jwtauthentication.Service;
 
+import dev.hemraj.jwtauthentication.ResponseDto.TokenResponse;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -9,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
@@ -89,7 +89,7 @@ public class JwtService {
     public boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
-    private Date extractExpiration(String token) {
+    public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
 
@@ -109,24 +109,43 @@ public class JwtService {
     public String extractUserId(String token) {
         return extractClaim(token, claims -> claims.get("userId", String.class));
     }
-    public ResponseEntity<?> refreshAccessToken(String refreshToken ){
+    public ResponseEntity<TokenResponse> refreshAccessToken(String refreshToken ){
+        TokenResponse response = new TokenResponse();
         try {
             String userID = extractUserId(refreshToken);
             if (isTokenExpired(refreshToken)) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh Token Expired");
+                response.setRefreshToken("");
+                response.setAccessToken("");
+                response.setDescription("refresh token expired");
+                response.setSuccess(false);
+                response.setStatus(HttpStatus.UNAUTHORIZED);
+                response.setExpiresAt(null);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
             }
 
             UserDetails userDetails = userDetailsService.loadUserByUsername(extractUsername(refreshToken));
             if (isTokenValid(refreshToken, userDetails)) {
                 String newAccessToken = generateAccessToken(userDetails, userID);
-                return ResponseEntity.status(HttpStatus.OK).body(newAccessToken);
+                response.setRefreshToken(refreshToken);
+                response.setAccessToken(newAccessToken);
+                response.setDescription("access token generated");
+                response.setSuccess(true);
+                response.setStatus(HttpStatus.OK);
+                response.setExpiresAt(extractExpiration(newAccessToken));
+                return ResponseEntity.status(HttpStatus.OK).body(response);
             } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("refresh token expired");
+                response.setRefreshToken("");
+                response.setAccessToken("");
+                response.setDescription("Invalid Token");
+                response.setSuccess(false);
+                response.setStatus(HttpStatus.UNAUTHORIZED);
+                response.setExpiresAt(null);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
             }
         }catch (Exception err){
             log.error("Error in refreshing the access token : ", err);
         }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error in refreshing access token");
+        return ResponseEntity.internalServerError().body(response);
     }
 }
 

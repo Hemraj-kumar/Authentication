@@ -4,7 +4,7 @@ import dev.hemraj.jwtauthentication.RequestDto.LoginDto;
 import dev.hemraj.jwtauthentication.RequestDto.PasswordDto;
 import dev.hemraj.jwtauthentication.RequestDto.RegisterDto;
 import dev.hemraj.jwtauthentication.Model.User;
-import dev.hemraj.jwtauthentication.ResponseDto.LoginResponse;
+import dev.hemraj.jwtauthentication.ResponseDto.TokenResponse;
 import dev.hemraj.jwtauthentication.Service.AuthenticationService;
 import dev.hemraj.jwtauthentication.Service.JwtService;
 import dev.hemraj.jwtauthentication.Service.UserService;
@@ -13,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
 @RequestMapping("/api/public")
 @RestController
@@ -48,13 +50,12 @@ public class AuthenticationController {
         String jwtToken = jwtService.generateAccessToken(authenticatedUser,String.valueOf(userId));
         String refreshToken = jwtService.generateRefreshToken(authenticatedUser, String.valueOf(userId));
 
-        LoginResponse loginResponse = new LoginResponse();
-        loginResponse.setAccessToken(jwtToken);
-        loginResponse.setRefreshToken(refreshToken);
-        loginResponse.setExpiresIn(jwtService.getExpirationTime());
-        loginResponse.setUserName(jwtService.extractUsername(jwtToken));
-        loginResponse.setUserid(jwtService.extractUserId(jwtToken));
-        return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
+        TokenResponse tokenResponse = new TokenResponse();
+        tokenResponse.setAccessToken(jwtToken);
+        tokenResponse.setRefreshToken(refreshToken);
+        tokenResponse.setExpiresAt(jwtService.extractExpiration(jwtToken));
+
+        return ResponseEntity.status(HttpStatus.OK).body(tokenResponse);
     }
     @PatchMapping("/changePassword")
     public ResponseEntity<?> changePassword(@RequestParam(name = "user_email") String userEmail ){
@@ -80,10 +81,11 @@ public class AuthenticationController {
     }
 
     @PostMapping("/token/refresh")
-    public ResponseEntity<?> refreshAccessToken(@RequestHeader("AuhorizationToken") String refreshToken){
+    public ResponseEntity<?> refreshAccessToken(@RequestHeader(AUTHORIZATION) String refreshToken){
         try {
             if (refreshToken != null && refreshToken.startsWith("Bearer")) {
                 String originalRefreshToken = refreshToken.substring(7);
+
                 return jwtService.refreshAccessToken(originalRefreshToken);
             } else {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Token or Token not found");
