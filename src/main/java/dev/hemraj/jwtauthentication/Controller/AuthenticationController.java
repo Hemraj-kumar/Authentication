@@ -53,8 +53,9 @@ public class AuthenticationController {
         TokenResponse tokenResponse = new TokenResponse();
         tokenResponse.setAccessToken(jwtToken);
         tokenResponse.setRefreshToken(refreshToken);
-        tokenResponse.setExpiresAt(jwtService.extractExpiration(jwtToken));
-
+        tokenResponse.setExpiresAt(jwtService.getExpirationTime());
+        tokenResponse.setStatus(HttpStatus.OK);
+        tokenResponse.setSuccess(true);
         return ResponseEntity.status(HttpStatus.OK).body(tokenResponse);
     }
     @PatchMapping("/changePassword")

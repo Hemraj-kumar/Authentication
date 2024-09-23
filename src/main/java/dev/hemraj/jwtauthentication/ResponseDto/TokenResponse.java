@@ -1,13 +1,12 @@
 package dev.hemraj.jwtauthentication.ResponseDto;
 
 import java.time.ZonedDateTime;
-import java.util.Date;
 
 public class TokenResponse {
     private Enum status;
     private String accessToken;
     private String refreshToken;
-    private Date expiresAt;
+    private ZonedDateTime expiresAt;
     private String description;
     private boolean success;
     public String getDescription() {
@@ -26,17 +25,16 @@ public class TokenResponse {
         this.success = success;
     }
 
-
-    public String getRefreshToken() {
-        return refreshToken;
-    }
-
     public Enum getStatus() {
         return status;
     }
 
     public void setStatus(Enum status) {
         this.status = status;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
     }
 
     public void setRefreshToken(String refreshToken) {
@@ -51,11 +49,23 @@ public class TokenResponse {
         this.accessToken = accessToken;
     }
 
-    public Date getExpiresAt() {
+    public ZonedDateTime getExpiresAt() {
         return expiresAt;
     }
 
-    public void setExpiresAt(Date expiresAt) {
+    public void setExpiresAt(ZonedDateTime expiresAt) {
         this.expiresAt = expiresAt;
+    }
+
+    public TokenResponse(Enum status, String accessToken, String refreshToken, ZonedDateTime expiresAt, String description, boolean success) {
+        this.status = status;
+        this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
+        this.expiresAt = expiresAt;
+        this.description = description;
+        this.success = success;
+    }
+
+    public TokenResponse() {
     }
 }

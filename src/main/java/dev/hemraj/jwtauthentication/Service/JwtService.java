@@ -114,33 +114,15 @@ public class JwtService {
         try {
             String userID = extractUserId(refreshToken);
             if (isTokenExpired(refreshToken)) {
-                response.setRefreshToken("");
-                response.setAccessToken("");
-                response.setDescription("refresh token expired");
-                response.setSuccess(false);
-                response.setStatus(HttpStatus.UNAUTHORIZED);
-                response.setExpiresAt(null);
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new TokenResponse(HttpStatus.UNAUTHORIZED,"","", null,"refresh token expired",false ));
             }
-
             UserDetails userDetails = userDetailsService.loadUserByUsername(extractUsername(refreshToken));
             if (isTokenValid(refreshToken, userDetails)) {
                 String newAccessToken = generateAccessToken(userDetails, userID);
-                response.setRefreshToken(refreshToken);
-                response.setAccessToken(newAccessToken);
-                response.setDescription("access token generated");
-                response.setSuccess(true);
-                response.setStatus(HttpStatus.OK);
-                response.setExpiresAt(extractExpiration(newAccessToken));
-                return ResponseEntity.status(HttpStatus.OK).body(response);
+                ZonedDateTime expiration = ZonedDateTime.ofInstant(extractExpiration(newAccessToken).toInstant(), ZoneId.systemDefault());
+                return ResponseEntity.status(HttpStatus.OK).body(new TokenResponse(HttpStatus.OK,newAccessToken,refreshToken,expiration,"access token generated",true));
             } else {
-                response.setRefreshToken("");
-                response.setAccessToken("");
-                response.setDescription("Invalid Token");
-                response.setSuccess(false);
-                response.setStatus(HttpStatus.UNAUTHORIZED);
-                response.setExpiresAt(null);
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new TokenResponse(HttpStatus.UNAUTHORIZED,"","",null,"Invalid Token",false));
             }
         }catch (Exception err){
             log.error("Error in refreshing the access token : ", err);
