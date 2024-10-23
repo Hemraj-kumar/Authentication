@@ -67,9 +67,9 @@ public class AuthenticationService {
             return ResponseEntity.ok("Verify email by the link sent on your email address!");
 
         } catch (Exception err) {
-            log.error("Failed to create a user");
-            throw new RuntimeException("Error creating a new User!");
+            log.error("Failed to create a user : ", err);
         }
+        return ResponseEntity.internalServerError().body("Error creating new user!");
     }
 
     public ResponseEntity<?> confirmEmail(String confirmationToken ){
