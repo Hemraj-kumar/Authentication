@@ -38,6 +38,14 @@ public class AuthenticationController {
     public ResponseEntity<?> confirmUserAccount(@RequestParam("confirmation_token") String token ){
         return authenticationService.confirmEmail(token);
     }
+    @GetMapping("/isVerified")
+    public ResponseEntity<?> checkVerified(@RequestHeader("email") String clientEmail){
+        boolean isVerified = authenticationService.verification(clientEmail);
+        if(!isVerified){
+            return ResponseEntity.badRequest().body("Email does not exists");
+        }
+        return ResponseEntity.ok().body("");
+    }
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDto loginDto){
         boolean verified = authenticationService.verification(loginDto.getEmail());
