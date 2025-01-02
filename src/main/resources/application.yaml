@@ -31,6 +31,7 @@ security:
   jwt:
     secret-key: gCraGFn1oKzn/YwTY7kQprMnuHgWPV6ZdBtv82nmWPA=
     expiration-time: 600000
+    refresh-expiration-time: 86400000
 logging:
   level:
     root: info
@@ -38,3 +39,4 @@ logging:
   file:
     name: auth.log
     path: /var/jwtauth/logs
+
