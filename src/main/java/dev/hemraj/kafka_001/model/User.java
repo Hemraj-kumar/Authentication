@@ -1,9 +1,6 @@
 package dev.hemraj.kafka_001.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -19,6 +16,7 @@ import java.util.Date;
 import java.util.List;
 
 @Data
+@Entity(name = "users")
 @AllArgsConstructor
 @NoArgsConstructor
 public class User implements UserDetails {
@@ -41,6 +39,9 @@ public class User implements UserDetails {
     @Column(name="updateAt")
     private Date updatedAt;
 
+    public long getId(){
+        return id;
+    }
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of();
@@ -48,7 +49,7 @@ public class User implements UserDetails {
 
     @Override
     public String getUsername() {
-        return String.valueOf(id);
+        return email;
     }
 
     @Override
@@ -75,4 +76,5 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return UserDetails.super.isEnabled();
     }
+
 }

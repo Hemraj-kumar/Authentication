@@ -1,5 +1,6 @@
 package dev.hemraj.kafka_001.service.authentication;
 
+import dev.hemraj.kafka_001.model.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -18,11 +19,11 @@ import java.util.function.Function;
 
 @Service
 public class JwtService {
-    @Value("${jwt_secret}")
+    @Value("${spring.auth.jwt_secret}")
     private String secretKey;
 
     @Getter
-    @Value("${jwt_expiration_time}")
+    @Value("${spring.auth.jwt_expiration_time}")
     private long expirationTime;
 
     public String extractUserName(String jwtToken){
@@ -50,6 +51,8 @@ public class JwtService {
         return buildToken(extraClaims,userDetails,expirationTime);
     }
     private String buildToken(Map<String, Object> extraClaims, UserDetails userDetails, long expirationTime) {
+        User user = (User) userDetails;
+        extraClaims.put("id",user.getId());
         return Jwts.builder()
                 .setClaims(extraClaims)
                 .setExpiration(new Date(System.currentTimeMillis()+expirationTime))
@@ -64,5 +67,6 @@ public class JwtService {
     public boolean isTokenValid(String jwtToken, UserDetails userDetails){
         return extractClaims(jwtToken,Claims::getSubject).equals(userDetails.getUsername()) && !isTokenExpired(jwtToken);
     }
+
 
 }

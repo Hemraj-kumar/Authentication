@@ -2,12 +2,17 @@ spring:
   application:
     name: kafka001
   datasource:
-    url: postgresql://db:5432/springboot_db
+    url: jdbc:postgresql://localhost:5433/springboot_db
     username: postgres
-    password: password
+    password: postgres
   jpa:
     hibernate:
       ddl-auto: update
   auth:
     jwt_secret: 83f1622a43889f83f151f57f241d5ee91d9a72a61124ddd76fe6900374fedf66
     jwt_expiration_time: 3600000
+  data:
+    jdbc:
+      dialect: postgresql
+server:
+  port: 8081
