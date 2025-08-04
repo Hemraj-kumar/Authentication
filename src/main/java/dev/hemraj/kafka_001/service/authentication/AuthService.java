@@ -11,7 +11,6 @@ import dev.hemraj.kafka_001.model.dto.RegisterUserDto;
 import dev.hemraj.kafka_001.model.dto.UserRegisterResponseDto;
 import dev.hemraj.kafka_001.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -19,7 +18,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.swing.table.TableRowSorter;
 import java.util.ArrayList;
 import java.util.List;
 

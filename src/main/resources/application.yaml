@@ -14,5 +14,13 @@ spring:
   data:
     jdbc:
       dialect: postgresql
+  mvc:
+    servlet:
+      path: /api
 server:
   port: 8081
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG

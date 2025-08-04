@@ -28,10 +28,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/**").permitAll()
-                        .anyRequest().authenticated()
-                )
+                    .authorizeHttpRequests(auth -> auth
+                            .requestMatchers("/auth/**","/products/**").permitAll()
+                            .anyRequest().authenticated()
+                    )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
@@ -44,7 +44,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowCredentials(true);
         configuration.setAllowedOriginPatterns(List.of("http://localhost:8081"));
-        configuration.setAllowedMethods(List.of("GET","POST","PUT","PATCH"));
+        configuration.setAllowedMethods(List.of("GET","POST","PUT","PATCH","OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization","Content-Type"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
