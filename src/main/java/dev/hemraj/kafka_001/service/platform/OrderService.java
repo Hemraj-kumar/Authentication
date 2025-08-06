@@ -37,6 +37,7 @@ public class OrderService {
                 apiResponse.setMessage("Cannot place order since your cart is empty");
                 apiResponse.setData(new Object());
                 apiResponse.setSuccess(Boolean.TRUE);
+
                 return apiResponse;
             }
             Order order = new Order();
