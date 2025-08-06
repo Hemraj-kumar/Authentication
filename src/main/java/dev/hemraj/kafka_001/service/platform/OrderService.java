@@ -9,9 +9,11 @@ import dev.hemraj.kafka_001.repository.OrderRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.annotation.CreatedBy;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -26,6 +28,7 @@ public class OrderService {
     private final OrderItemRepository orderItemRepository;
     private final OrderRepository orderRepository;
     private final KafkaTemplate<String, CreateOrderEvent> kafkaTemplate;
+    private final JavaMailSenderImpl mailSender;
 
     public ApiResponse placeOrder(String email) {
         ApiResponse apiResponse = new ApiResponse();
@@ -68,7 +71,7 @@ public class OrderService {
                             item.getPrice()
                     ))
                     .toList();
-            produceMessageToKafka(kafkaTemplate, new CreateOrderEvent(email,orderItemDTOs));
+            produceMessageToKafka(new CreateOrderEvent(email,orderItemDTOs));
 
             apiResponse.setCode(200);
             apiResponse.setMessage("Order placed successfully!");
@@ -81,11 +84,39 @@ public class OrderService {
         apiResponse.setErrorBOList(errorBOList);
         return apiResponse;
     }
-    public void produceMessageToKafka(KafkaTemplate<String, CreateOrderEvent> kafkaTemplate, CreateOrderEvent createOrderEvent) {
+    public void produceMessageToKafka( CreateOrderEvent createOrderEvent) {
         try{
             kafkaTemplate.send("placed-order",createOrderEvent);
         }catch (Exception err){
             log.error("Error in producing message to kafka for useremail: {}",createOrderEvent.getUserEmail(),err);
+        }
+    }
+
+
+    @KafkaListener(topics = "placed-order",groupId = "order-group",containerFactory = "kafkaListenerContainerFactory")
+    public void consume(CreateOrderEvent createOrderEvent) {
+        try {
+            log.info("Received Order Event: {}", createOrderEvent);
+            try {
+                sendEmail(createOrderEvent);
+            } catch (Exception e) {
+                log.error("Failed to send email to: {}", createOrderEvent.getUserEmail(), e);
+            }
+        }catch (Exception err){
+            log.error("Error in listening to messages : ", err);
+        }
+    }
+    public void sendEmail(CreateOrderEvent createOrderEvent){
+        try{
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(createOrderEvent.getUserEmail());
+            message.setSubject("Your Order is Placed Successfully!");
+            message.setText("Thank you for your order. Here are the details:\n" +
+                    createOrderEvent.getOrderItems().toString());
+            mailSender.send(message);
+            log.info("Email sent successfully to user email : {}", createOrderEvent.getUserEmail());
+        }catch (Exception err){
+            log.error("Error in sending mail to : {} ",createOrderEvent.getUserEmail(),err);
         }
     }
 }
