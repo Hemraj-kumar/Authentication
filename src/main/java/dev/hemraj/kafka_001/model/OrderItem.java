@@ -12,14 +12,20 @@ import lombok.NoArgsConstructor;
 public class OrderItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @ManyToOne
-    private Order order;
-
-    @ManyToOne
-    private Product product;
-
+    private long id;
+    private Long productId;
+    private String productName;
     private int quantity;
     private double price;
+    @ManyToOne
+    @JoinColumn(name = "order_id")
+    private Order order;
+
+    public OrderItem(Long productId, String productName, double price, int quantity, Order order) {
+        this.productId = productId;
+        this.productName = productName;
+        this.price = price;
+        this.quantity = quantity;
+        this.order = order;
+    }
 }

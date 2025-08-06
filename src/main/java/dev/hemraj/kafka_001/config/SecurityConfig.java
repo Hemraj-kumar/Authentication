@@ -29,7 +29,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                     .authorizeHttpRequests(auth -> auth
-                            .requestMatchers("/cart/**").authenticated()
+                            .requestMatchers("/cart/**","/order/**").authenticated()
                             .requestMatchers("/auth/**","/products/**").permitAll()
                             .anyRequest().authenticated()
                     )
