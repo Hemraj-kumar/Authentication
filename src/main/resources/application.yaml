@@ -34,8 +34,8 @@ spring:
               default:
                 type: dev.hemraj.kafka_001.model.dto.platform.CreateOrderEvent
   mail:
-    password: npwz ovge tilg rhvz
-    username: killerhems004@gmail.com
+    password: xxxx
+    username: yourmail@gmail.com
     port: 587
     host: smtp.gmail.com
     properties:
