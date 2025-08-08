@@ -3,6 +3,7 @@ package dev.hemraj.kafka_001.exception;
 import dev.hemraj.kafka_001.model.ApiResponse;
 import dev.hemraj.kafka_001.model.ErrorBO;
 import dev.hemraj.kafka_001.utils.ApiConstants;
+import io.jsonwebtoken.ExpiredJwtException;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleValidationException(MethodArgumentNotValidException exception) {
         List<ErrorBO> errors = exception.getBindingResult().getFieldErrors()
                 .stream()
-                .map(e -> new ErrorBO(ApiConstants.GENERIC_VALIDATION_ERROR, e.getField(),e.getDefaultMessage()))
+                .map(e -> new ErrorBO(ApiConstants.GENERIC_VALIDATION_ERROR, e.getField(), e.getDefaultMessage()))
                 .collect(Collectors.toList());
         ApiResponse response = new ApiResponse();
         response.setCode(400);
@@ -34,7 +35,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<Object> handleUserAlreadyExistsException(UserAlreadyExistsException exception){
+    public ResponseEntity<Object> handleUserAlreadyExistsException(UserAlreadyExistsException exception) {
         ErrorBO errors = new ErrorBO();
         errors.setCode(400);
         errors.setDesc(exception.getMessage());
@@ -49,5 +50,22 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
 
+    }
+
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<Object> handleTokenAlreadyExpiredException(ExpiredJwtException exception) {
+        ErrorBO errors = new ErrorBO();
+        errors.setCode(403);
+        errors.setDesc("Your JWT Token has expired, Please login again!");
+        errors.setField("");
+        List<ErrorBO> errorBOList = List.of(errors);
+
+        ApiResponse response = new ApiResponse();
+        response.setCode(403);
+        response.setErrorBOList(errorBOList);
+        response.setSuccess(Boolean.FALSE);
+        response.setData(new JSONObject());
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 }
